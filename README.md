@@ -68,11 +68,13 @@ For Gmail you need to generate an App Password (if using 2FA) and use that as SM
 
 Run the backend server
 <br>
-"uvicorn main:app --reload"
+"uvicorn main:app --reload" <br>
+OR if it does not work
+"python -m uvicorn main:app --reload"
 
-Open in browser
+Open in browser on this link:
 <br>
-Calendar UI: http://127.0.0.1:8000
+http://127.0.0.1:8000
 
 
 ## ⛏️ Built Using <a name = "built_using"></a>
