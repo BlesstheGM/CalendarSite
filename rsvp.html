@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RSVP to Event</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles/style2.css" />
+</head>
+<body>
+  <div class="rsvp-container">
+    <h1 id="eventTitle" class="event-title">Loading event...</h1>
+    <div id="eventDetails" class="event-details"></div>
+
+    <form id="rsvpForm" data-event-id="" class="rsvp-form" novalidate>
+      <label for="guestEmail">Your Email</label>
+      <input
+        type="email"
+        id="guestEmail"
+        name="guestEmail"
+        placeholder="you@example.com"
+        required
+        autocomplete="email"
+      />
+
+      <label for="status">RSVP Status</label>
+      <select id="status" name="status" required>
+        <option value="" disabled selected>Select your response</option>
+        <option value="yes">Yes, I will attend</option>
+        <option value="no">No, I can't make it</option>
+        <option value="maybe">Maybe</option>
+      </select>
+
+      <button type="submit" class="btn-submit">Submit RSVP</button>
+    </form>
+
+    <div id="thankYouMessage" class="thank-you" aria-live="polite"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("rsvpForm");
+    const thankYouMessage = document.getElementById("thankYouMessage");
+    const eventTitleEl = document.getElementById("eventTitle");
+    const eventDetailsEl = document.getElementById("eventDetails");
+
+    // Extract event_id from the url u
+    const pathParts = window.location.pathname.split('/');
+    const eventId = pathParts[pathParts.length - 1];
+    form.dataset.eventId = eventId;
+
+    // Fetch event details from backend API
+    async function loadEvent() {
+      try {
+        const res = await fetch(`/events/${eventId}`);
+        if (!res.ok) throw new Error('Event not found');
+        const event = await res.json();
+
+        eventTitleEl.textContent = event.title;
+
+        // Format date nicely
+        const date = new Date(event.date);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = date.toLocaleDateString(undefined, options);
+
+        let timeStr = '';
+        if (event.all_day) {
+          timeStr = 'All day';
+        } else if(event.start_time && event.end_time) {
+          timeStr = `${event.start_time} - ${event.end_time}`;
+        }
+
+        eventDetailsEl.innerHTML = `
+          <p><strong>Date:</strong> ${dateStr}</p>
+          <p><strong>Time:</strong> ${timeStr || 'N/A'}</p>
+          <p><strong>Location:</strong> ${event.location || 'N/A'}</p>
+          <p><strong>Description:</strong> ${event.description || 'N/A'}</p>
+        `;
+      } catch (err) {
+        eventTitleEl.textContent = "Event not found";
+        eventDetailsEl.textContent = "";
+        form.style.display = "none";
+        console.error(err);
+      }
+    }
+
+    loadEvent();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const guestEmail = form.guestEmail.value.trim();
+      const status = form.status.value;
+
+      if (!guestEmail || !status) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/events/${eventId}/rsvp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ guest_email: guestEmail, status: status }),
+        });
+
+        if (response.ok) {
+          form.reset();
+          thankYouMessage.textContent = "Thank you for your RSVP!";
+        } else {
+          const errorData = await response.json();
+          alert("Failed to submit RSVP: " + (errorData.detail || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Error submitting RSVP: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

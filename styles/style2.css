@@ -1,0 +1,94 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9fafb;
+  margin: 0;
+  padding: 20px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #333;
+}
+
+.rsvp-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  max-width: 480px;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.event-title {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+  text-align: center;
+  color: #222;
+}
+
+.event-details p {
+  margin: 6px 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #555;
+  text-align: center;
+}
+
+.rsvp-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rsvp-form label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.rsvp-form input[type="email"],
+.rsvp-form select {
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+}
+
+.rsvp-form input[type="email"]:focus,
+.rsvp-form select:focus {
+  outline: none;
+  border-color: #0078d7;
+  box-shadow: 0 0 6px rgba(0, 120, 215, 0.3);
+}
+
+.btn-submit {
+  background-color: #0078d7;
+  color: white;
+  font-weight: 700;
+  border: none;
+  padding: 14px 0;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.btn-submit:hover,
+.btn-submit:focus {
+  background-color: #005ea2;
+  outline: none;
+}
+
+.thank-you {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c7a7b;
+  text-align: center;
+  min-height: 1.5em;
+}

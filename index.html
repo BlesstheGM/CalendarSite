@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CalendarSite</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    CalendarSite
+  </header>
+
+  <div class="layout">
+    <div class="calendar" aria-label="Monthly calendar">
+      <div class="header">
+        <div class="month-label" id="monthLabel">Month Year</div>
+        <div class="nav-buttons">
+          <button id="prevBtn" aria-label="Previous month">&lt; Prev</button>
+          <button id="todayBtn" aria-label="Go to today">Today</button>
+          <button id="nextBtn" aria-label="Next month">Next &gt;</button>
+        </div>
+      </div>
+      <div class="weekdays" aria-hidden="true">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div class="grid" id="daysGrid" role="grid"></div>
+    </div>
+
+    <aside class="event-sidebar" aria-label="Event creation panel" aria-hidden="true">
+      <div class="sidebar-header">
+        <h2>Create Event</h2>
+        <button id="closeSidebar" aria-label="Close sidebar">&times;</button>
+      </div>
+      <form id="eventForm">
+        <label>
+          Title
+          <input type="text" name="title" required autocomplete="off" />
+        </label>
+
+        <label>
+          Date
+          <input type="date" name="date" required />
+        </label>
+
+        <div class="time-row">
+          <label>
+            Start
+            <input type="time" name="start" required />
+          </label>
+          <label>
+            End
+            <input type="time" name="end" required />
+          </label>
+        </div>
+
+        <label class="fullwidth">
+          <input type="checkbox" name="allDay" /> All day
+        </label>
+
+        <label>
+          Location
+          <input type="text" name="location" autocomplete="off" />
+        </label>
+
+        <label>
+          Your Email
+          <input type="email" name="organizerEmail" autocomplete="off" required />
+        </label>
+
+        <label>
+          Number of Guests
+          <input type="number" name="guestCount" min="0" value="0" />
+        </label>
+
+        <div class="guests-emails-wrapper">
+          <label for="guestEmailInput">Guests' Emails</label>
+          <div id="guestEmailsContainer" class="email-tags" aria-label="Guest emails input">
+            <input
+              id="guestEmailInput"
+              type="text"
+              autocomplete="off"
+              aria-describedby="guestEmailHelp"
+            />
+          </div>
+          <div id="guestEmailHelp" class="helper-text">
+            Add guest emails; press Enter or comma, or paste a list.
+          </div>
+          <div id="guestEmailError" class="error-text" aria-live="polite"></div>
+        </div>
+
+        <label>
+          Description
+          <textarea name="description" rows="3"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit">Save Event</button>
+          <button type="button" id="clearBtn">Clear</button>
+        </div>
+      </form>
+      <div id="feedback" aria-live="polite"></div>
+    </aside>
+  </div>
+
+  <button id="bigCreateBtn" class="big-create-btn">
+    + Create Event
+  </button>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
