@@ -81,10 +81,10 @@ http://127.0.0.1:8000
 
 - FastAPI – Backend framework for building APIs
 - SQLite – Lightweight database
-- SQLAlchemy – ORM (Object-Relational Mapper) for database interaction
-- Pydantic – Data validation and serialization
-- Uvicorn – ASGI server for running FastAPI
-- JavaScript (Vanilla JS) – Frontend interactivity
+- SQLAlchemy – ORM for database interaction
+- Pydantic – Data validation 
+- Uvicorn – server for running FastAPI
+- JavaScript  – Frontend interaction
 - HTML5 – Structure of the web pages
 - CSS3 – Styling for the UI
 - Python dotenv – For loading environment variables from .env
