@@ -61,11 +61,11 @@ run<br>
 
 In the .env fie set the below with your configuration:<br>
 SMTP_USER=your.email@gmail.com<br>
-SMTP_PASS=your_app_password_here<br>
+SMTP_PASS=your_app_password_here<br><br>
 <b> Leave the base url like this </b>
 BASE_URL=http://127.0.0.1:8000
 
-For Gmail you need to generate an App Password (if using 2FA) and use that as SMTP_PASS.
+For Gmail you need to generate an App Password (if using 2FA)
 
 Run the backend server
 <br>
