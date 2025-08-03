@@ -29,7 +29,7 @@ This project is a **full-stack calendar & RSVP system** that allows users to:
 - Automatically generate RSVP links for events.
 - Guests can respond via the RSVP page.
 - Sends confirmation emails and stores a local HTML copy of the RSVP confirmation.
-
+- Include an interesting random fact and positive custom quote powered by OpenAI API.
 
 It’s built with **FastAPI** (Python) for the backend, **JavaScript** for dynamic frontend behavior, and **SQLite** as the database.
 
