@@ -60,8 +60,9 @@ run<br>
 "pip install -r requirements.txt"
 
 In the .env fie set the below with your configuration:<br>
-SMTP_USER=your.email@gmail.com<br>
-SMTP_PASS=your_app_password_here<br><br>
+SMTP_USER = "your.email@gmail.com"<br>
+SMTP_PASS = "your_app_password_here"<br>
+OPENAI_API_KEY = "Your OpenAPI key"<br><br>
 <b> Leave the base url like this </b>
 BASE_URL=http://127.0.0.1:8000
 
