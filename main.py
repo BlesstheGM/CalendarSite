@@ -21,21 +21,25 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-
+import openai
 
 load_dotenv()  # loads .env file if present
 
+# Environment / config
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000") 
-
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not SMTP_USER or not SMTP_PASS:
     print("WARNING: SMTP_USER or SMTP_PASS not set. Email sending will fail if used.")
 
+if not OPENAI_API_KEY:
+    print("WARNING: OPENAI_API_KEY not set. ChatGPT content will fallback to defaults.")
 
+# Database setup
 DATABASE_URL = "sqlite:///./events.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
@@ -72,6 +76,7 @@ class RSVP(Base):
 Base.metadata.create_all(bind=engine)
 
 
+# Pydantic schemas
 class EventCreate(BaseModel):
     title: str
     date: str
@@ -106,6 +111,7 @@ class RSVPIn(BaseModel):
     status: str
 
 
+# Email utilities
 def send_email(subject: str, body: str, to_email: str):
     if not SMTP_USER or not SMTP_PASS:
         print(f"[send_email] Missing SMTP credentials; skipping email to {to_email}")
@@ -122,12 +128,60 @@ def send_email(subject: str, body: str, to_email: str):
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_USER, to_email, msg.as_string())
     except Exception as e:
-
         print(f"Failed to send email to {to_email}: {e}")
 
 
+# ChatGPT generation for quote + fact
+DEFAULT_QUOTE = "Thank you for your RSVP! Your presence will make this event special."
+DEFAULT_FACT = "Did you know? Honey never spoils — edible even after thousands of years."
 
-def save_rsvp_confirmation_html(event, guest_email, status):
+def get_quote_and_fact():
+    if OPENAI_API_KEY:
+        try:
+            openai.api_key = OPENAI_API_KEY
+            system_prompt = (
+                "You are a friendly assistant. When asked, generate two things: "
+                "1) A short warm positive RSVP confirmation quote in one sentence. "
+                "2) An interesting fact (concise, surprising, and friendly). "
+                "Return them clearly labeled as 'Quote:' and 'Fact:' with no additional sections."
+            )
+            user_prompt = "Provide a positive RSVP quote and an interesting fact."
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.8,
+                max_tokens=120,
+            )
+            content = response.choices[0].message.content.strip()
+ 
+            quote = DEFAULT_QUOTE
+            fact = DEFAULT_FACT
+            # try to extract lines
+            for line in content.splitlines():
+                if line.lower().startswith("quote:"):
+                    quote = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("fact:"):
+                    fact = line.split(":", 1)[1].strip()
+            # if not labeled, fallback to splitting by sentences
+            if quote == DEFAULT_QUOTE or fact == DEFAULT_FACT:
+                parts = content.split("\n")
+                if len(parts) >= 2:
+                    # assume first is quote, second is fact if unlabeled
+                    if quote == DEFAULT_QUOTE:
+                        quote = parts[0].strip()
+                    if fact == DEFAULT_FACT:
+                        fact = parts[1].strip()
+            return quote, fact
+        except Exception as e:
+            print(f"[get_quote_and_fact] OpenAI error, falling back: {e}")
+    return DEFAULT_QUOTE, DEFAULT_FACT
+
+
+# RSVP confirmation HTML with a quote and fact from OpenAI
+def save_rsvp_confirmation_html(event, guest_email, status, quote: str, fact: str):
     os.makedirs("rsvp_confirmations", exist_ok=True)
     link = f"{BASE_URL}/rsvp/{event.id}"
 
@@ -171,6 +225,16 @@ def save_rsvp_confirmation_html(event, guest_email, status):
                 color: #2563eb;
                 text-decoration: none;
             }}
+            .quote, .fact {{
+                font-style: italic;
+                background: #eef6ff;
+                padding: 10px 14px;
+                border-radius: 6px;
+                margin: 10px 0;
+            }}
+            .fact {{
+                background: #fff8e1;
+            }}
             .footer {{
                 margin-top: 20px;
                 font-size: 0.9rem;
@@ -182,6 +246,8 @@ def save_rsvp_confirmation_html(event, guest_email, status):
         <div class="container">
             <h1>Thank you for your RSVP!</h1>
             <p>Hi <strong>{guest_email}</strong>,</p>
+            <div class="quote"><strong>Quote:</strong> {quote}</div>
+            <div class="fact"><strong>Interesting Fact:</strong> {fact}</div>
             <p>We have recorded your response for the event:</p>
             <div class="meta">
                 <p><strong>Event:</strong> {event.title}</p>
@@ -201,12 +267,15 @@ def save_rsvp_confirmation_html(event, guest_email, status):
     """
 
     sanitized_email = guest_email.replace("@", "_at_").replace(".", "_")
-    filename = os.path.join("rsvp_confirmations", f"rsvp_confirmation_{event.id}_{sanitized_email}.html")
+    filename = os.path.join(
+        "rsvp_confirmations", f"rsvp_confirmation_{event.id}_{sanitized_email}.html"
+    )
     with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
     return filename
 
 
+# FastAPI app
 app = FastAPI()
 
 app.add_middleware(
@@ -220,12 +289,14 @@ BASE_DIR = os.path.dirname(__file__)
 app.mount("/styles", StaticFiles(directory=os.path.join(BASE_DIR, "styles")), name="styles")
 app.mount("/js", StaticFiles(directory=os.path.join(BASE_DIR, "js")), name="js")
 
+
 @app.get("/", include_in_schema=False)
 def serve_index():
     index_path = os.path.join(BASE_DIR, "index.html")
     if not os.path.isfile(index_path):
         raise HTTPException(status_code=404, detail="Frontend index.html not found")
     return FileResponse(index_path)
+
 
 @app.get("/rsvp/{event_id}", include_in_schema=False)
 def serve_rsvp(event_id: int):
@@ -318,13 +389,17 @@ def rsvp_event(event_id: int, rsvp: RSVPIn, background_tasks: BackgroundTasks):
             db.add(existing)
         db.commit()
 
+        # Get both quote and interesting fact from ChatGPT
+        quote, fact = get_quote_and_fact()
+
         # Save RSVP confirmation HTML locally
-        save_rsvp_confirmation_html(event, rsvp.guest_email, rsvp.status)
+        save_rsvp_confirmation_html(event, rsvp.guest_email, rsvp.status, quote, fact)
 
         if rsvp.status.lower() == "yes":
             link = f"{BASE_URL}/rsvp/{event_id}"
             body = f"""
-            <h3>Thank you for confirming your attendance!</h3>
+            <h3>{quote}</h3>
+            <p><strong>Interesting Fact:</strong> {fact}</p>
             <p>Event: {event.title} on {event.date}</p>
             <p>Location: {event.location or 'N/A'}</p>
             <p>View or modify your RSVP here: <a href="{link}">{link}</a></p>
