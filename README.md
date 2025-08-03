@@ -59,7 +59,7 @@ Or just make sure all your project files (main.py, index.html, rsvp.html, styles
 run<br> 
 "pip install -r requirements.txt"
 
-In the .env fie set the below with your configuration:<br>
+In the .env fie set the below variables with your configuration:<br>
 SMTP_USER = "your.email@gmail.com"<br>
 SMTP_PASS = "your_app_password_here"<br>
 OPENAI_API_KEY = "Your OpenAPI key"<br><br>
